@@ -1,4 +1,4 @@
-import datetime, os, google.auth.transport.requests, google.oauth2.id_token, requests, json
+import datetime, os, google.auth.transport.requests, google.oauth2.id_token, requests, json, psycopg2
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 
@@ -42,8 +42,34 @@ def index():
 
 @app.get("/prices", status_code=200)
 def get_prices():
-    # TODO add a call to the Database to retrieve the current prices
-    return "Works"
+    connection = psycopg2.connect(os.environ["DATABASE_URL"])
+    cursor = connection.cursor()
+
+    select_query = "SELECT * FROM prices WHERE end_date IS NULL"
+    cursor.execute(select_query)
+
+    rows = cursor.fetchall()
+
+    data = []
+    # Iterate over the rows and create dictionaries
+    for row in rows:
+        batch_name, price, start_date, end_date = row
+    
+        # Create a dictionary for the row
+        row_dict = {
+            'batch_name': batch_name,
+            'price': price,
+        
+        }
+        # Append the dictionary to the list
+        data.append(row_dict)
+
+    # Convert the list of dictionaries to JSON
+    json_data = json.dumps(data)
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return json_data
 
 @app.get("/prices/{batch_name}", status_code=200)
 def get_product_price(batch_name: str):
