@@ -1,0 +1,14 @@
+version: '3'
+services:
+  praice:
+    container_name: fastapi
+    build:
+      context: .
+      dockerfile: fastapi.Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/data
+    env_file:
+    - path: ../.env
+      required: true
