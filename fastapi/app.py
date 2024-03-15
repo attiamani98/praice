@@ -34,6 +34,8 @@ def get_requests_headers(api_key):
     }
 
 
+# All API calls to the database and exposed endpoint for the dynamic price simulator go here
+
 @app.get("/")
 def index():
   return "Hello to the PrAIce is Right Market"
@@ -50,6 +52,7 @@ def get_product_price(batch_name: str):
     except KeyError:
         raise HTTPException(404, f"Product {Batch[batch_name].product_name} is not sold here, sorry")
 
+# All API calls to get data from the dynamic price simulator go here
 @app.get("/audience-products")
 def get_audience_products():
     headers = get_requests_headers(api_key)
