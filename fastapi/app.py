@@ -1,18 +1,22 @@
 import datetime, os, google.auth.transport.requests, google.oauth2.id_token, requests, json, psycopg2
+import time
 import pandas as pd
+import logging
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
 
 
 app = FastAPI()
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "./pricing-prd-11719402-69eaf79e6222.json"
 )
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
-
 headers = {"X-API-KEY": api_key}
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -205,7 +209,7 @@ def insert_stocks(stocks):
 
             # Check if the product already exists in the database
             select_query = sql.SQL(
-                "SELECT COUNT(*) FROM stock WHERE batch_name = %s AND execution_time = %s"
+                "SELECT COUNT(*) FROM stock WHERE batch_id = %s AND execution_time = %s"
             )
             cursor.execute(select_query, (batch_id, execution_time))
             count = cursor.fetchone()[0]
@@ -213,7 +217,7 @@ def insert_stocks(stocks):
             # If the product doesn't exist, insert it into the database
             if count == 0:
                 insert_query = sql.SQL(
-                    "INSERT INTO stock (batch_name, amount, execution_time) VALUES (%s, %s, %s)"
+                    "INSERT INTO stock (batch_id, amount, execution_time) VALUES (%s, %s, %s)"
                 )
                 cursor.execute(
                     insert_query,
@@ -225,3 +229,18 @@ def insert_stocks(stocks):
 
     cursor.close()
     connection.close()
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    while True:
+        # TODO: Add the get_audience_prices to this loop
+        # TODO: Add the explore exploit function to this loop
+        get_audience_products()
+        get_audience_stocks()
+
+        logger.info(f"Loop has ran successfully.")
+        time.sleep(60)
+
+
+main()
