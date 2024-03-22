@@ -6,6 +6,7 @@ import threading
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
+from model import update_price
 
 
 app = FastAPI()
@@ -241,6 +242,7 @@ def loop_calls():
         # TODO: Add the explore exploit function to this loop
         get_audience_products()
         get_audience_stocks()
+        update_price()
 
         logger.info(f"Loop has ran successfully.")
 
