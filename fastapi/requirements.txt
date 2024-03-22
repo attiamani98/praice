@@ -4,3 +4,4 @@ google-auth
 fastapi
 uvicorn[standard]
 psycopg2-binary
+pandas
