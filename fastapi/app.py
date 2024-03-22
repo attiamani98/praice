@@ -49,27 +49,23 @@ def get_prices():
     cursor.execute(select_query)
 
     rows = cursor.fetchall()
+    data = {}
 
-    data = []
-    # Iterate over the rows and create dictionaries
     for row in rows:
-        batch_name, price, start_date, end_date = row
-    
-        # Create a dictionary for the row
-        row_dict = {
-            'batch_name': batch_name,
-            'price': price,
+        product_name, batch_name, price, start_date, end_date = row
         
-        }
-        # Append the dictionary to the list
-        data.append(row_dict)
+        if product_name not in data:
+            data[product_name] = {}
+        
+        data[product_name][batch_name] = price
 
-    # Convert the list of dictionaries to JSON
     json_data = json.dumps(data)
+    cleaned_json_data = json.loads(json_data.replace('\\', ''))
+
     connection.commit()
     cursor.close()
     connection.close()
-    return json_data
+    return cleaned_json_data
 
 @app.get("/prices/{batch_name}", status_code=200)
 def get_product_price(batch_name: str):
