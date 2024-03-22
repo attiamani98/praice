@@ -34,9 +34,21 @@ resource "google_cloud_run_service" "default" {
         ports {
          container_port = 8000
         }
+        env {
+          name = "DATABASE_URL"
+          value = "postgresql://DynamicPrice_owner:pTgcEixz9s2G@ep-late-bird-a5ervzsm-pooler.us-east-2.aws.neon.tech/DynamicPrice?sslmode=require"
+        }
+        env {
+          name = "API_KEY"
+          value = "Oj?odt%vf[!%3{3&gZy_ziym"
+        }
+        env {
+          name = "API_URL"
+          value = "https://api-4q7cwzagvq-ez.a.run.app"
+        }
+        }
       }
     }
-  }
 }
 
 output "service_url" {
