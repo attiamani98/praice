@@ -2,6 +2,7 @@ import datetime, os, google.auth.transport.requests, google.oauth2.id_token, req
 import time
 import pandas as pd
 import logging
+import threading
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
@@ -56,7 +57,9 @@ def get_prices():
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
     cursor = connection.cursor()
 
-    select_query = "SELECT * FROM prices WHERE end_date IS NULL"
+    select_query = (
+        "SELECT * FROM prices WHERE start_date = (SELECT MAX(start_date) FROM prices)"
+    )
     cursor.execute(select_query)
 
     rows = cursor.fetchall()
@@ -64,14 +67,14 @@ def get_prices():
 
     for row in rows:
         product_name, batch_name, price, start_date, end_date = row
-        
+
         if product_name not in data:
             data[product_name] = {}
-        
+
         data[product_name][batch_name] = price
 
     json_data = json.dumps(data)
-    cleaned_json_data = json.loads(json_data.replace('\\', ''))
+    cleaned_json_data = json.loads(json_data.replace("\\", ""))
 
     connection.commit()
     cursor.close()
@@ -231,7 +234,7 @@ def insert_stocks(stocks):
     connection.close()
 
 
-def main():
+def loop_calls():
     logging.basicConfig(level=logging.INFO)
     while True:
         # TODO: Add the get_audience_prices to this loop
@@ -240,7 +243,7 @@ def main():
         get_audience_stocks()
 
         logger.info(f"Loop has ran successfully.")
-        time.sleep(60)
 
 
-main()
+timer = threading.Timer(60.0, loop_calls)
+timer.start()
