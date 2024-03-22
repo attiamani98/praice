@@ -1,0 +1,87 @@
+version: '3'
+
+vars:
+  REGION:
+    sh: echo $TF_VAR_region
+  PROJECT_ID:
+    sh: echo $TF_VAR_project_id
+  SERVICE_URL:
+    sh: echo $SERVICE_URL
+
+tasks:
+  # Simulator
+  application-cloud-run-*:
+    dir: fastapi
+    vars:
+      MODE: '{{index .MATCH 0}}'
+    cmds:
+      - 'curl --header "Authorization: Bearer $(gcloud auth print-identity-token)" {{.SERVICE_URL}}/praice_model'
+
+  application-build:
+    dir: fastapi
+    cmds:
+      - 'docker build -t ${TF_VAR_region}-docker.pkg.dev/${TF_VAR_project_id}/main-repo/praice_model:latest -f ../fastapi/fastapi.Dockerfile ../fastapi'
+
+    
+  application-push:
+    dir: fastapi
+    deps:
+      - application-build
+    cmds:
+      - docker push ${TF_VAR_region}-docker.pkg.dev/${TF_VAR_project_id}/main-repo/praice_model:latest
+
+  # Artifact Registry
+  registry_init:
+    dir: artifact_registry
+    cmds:
+      - terraform init
+
+  registry_build:
+    dir: artifact_registry
+    deps:
+      - registry_init
+    cmds:
+      - terraform plan -out=tfplan
+    
+  registry_deploy:
+    dir: artifact_registry
+    deps:
+      - registry_build
+    cmds:
+      - terraform apply tfplan
+
+  registry_destroy:
+    dir: artifact_registry
+    cmds:
+      - terraform destroy -auto-approve
+
+  # Application Infra
+  infra_init:
+    dir: application_infra
+    cmds:
+      - terraform init
+  
+  infra_build:
+    dir: application_infra
+    deps:
+      - infra_init
+    cmds:
+      - terraform plan -out=tfplan
+
+  infra_deploy:
+    dir: application_infra
+    deps:
+      - infra_build
+    cmds:
+      - terraform apply tfplan
+
+  infra_destroy:
+    dir: application_infra
+    cmds:
+      - terraform destroy -auto-approve
+
+  # Destroy all
+  destroy_all:
+    deps:
+      - infra_destroy
+      - registry_destroy
