@@ -67,36 +67,35 @@ def update_price():
     }
 
     epsilon = 1
-
-    print(
-        f"epsilon set to {epsilon}, which means we explore {epsilon*100} % of the time"
-    )
+    print(f'epsilon set to {epsilon}, which means we explore {epsilon*100} % of the time')
 
     unique_batch_names = sales_data.loc[lambda df: df.sell_by > pd.Timestamp.now()]['batch_name'].unique()
 
     prices = []
     for batch_name in unique_batch_names:
-        batch_df = df.loc[lambda df: df["batch_name"] == batch_name].reset_index(
-            drop=True
-        )
-        product = batch_df.loc[0, "product"]
+        batch_df = sales_data.loc[lambda df: df['batch_name'] == batch_name].reset_index(drop=True)
+        product = sales_data.loc[0, 'product']
         if np.random.rand() > epsilon:
-            # Exploit: select price with highest sales in history
-            product_df = df.loc[lambda df: df["product"] == product]
-            price = product_df["price"].agg("max")
-            print(
-                f"product {product}, batch {batch_name}: exploit. setting price to {price}"
-            )
+            pass
+            # # Exploit: select price with highest sales in history
+            # product_df = df.loc[lambda df: df['product'] == product]
+            # price = product_df['price'].agg('max')
+            # print(f'product {product}, batch {batch_name}: exploit. setting price to {price}')
         else:
             # Explore: select random price
-            price = np.random.uniform(
-                low=price_ranges[product][0], high=price_ranges[product][1]
-            )
-            print(
-                f"product {product}, batch {batch_name}: explore. sampling uniformly between "
-                f"{price_ranges[product][0]} and {price_ranges[product][1]} eur. setting price to {price}"
-            )
+            price = np.random.uniform(low=price_ranges[product][0], high=price_ranges[product][1])
+            print(f'product {product}, batch {batch_name}: explore. sampling uniformly between '
+                f'{price_ranges[product][0]} and {price_ranges[product][1]} eur. setting price to {price}')
         prices.append((product, batch_name, price))
+
+    prices_df = (
+        pd.DataFrame(prices, columns=['product_name', 'batch_name', 'price'])
+        .assign(start_date = pd.Timestamp.now())
+        .sort_values(['product_name', 'batch_name', 'price'])
+        .reset_index(drop=True)
+    )
+
+    prices_df
 
     prices_df = (
         pd.DataFrame(prices, columns=["product_name", "batch_name", "price"])
