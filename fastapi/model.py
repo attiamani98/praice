@@ -66,7 +66,7 @@ def update_price():
         "avocado": (4, 12),
     }
 
-    epsilon = 0.8
+    epsilon = 1
 
     print(
         f"epsilon set to {epsilon}, which means we explore {epsilon*100} % of the time"
