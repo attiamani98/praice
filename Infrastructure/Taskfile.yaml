@@ -20,7 +20,7 @@ tasks:
   application-build:
     dir: fastapi
     cmds:
-      - 'docker build -t ${TF_VAR_region}-docker.pkg.dev/${TF_VAR_project_id}/main-repo/praice_model:latest -f ../fastapi/fastapi.Dockerfile ../fastapi'
+      - 'docker build -t europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest -f ../fastapi/fastapi.Dockerfile ../fastapi'
 
     
   application-push:

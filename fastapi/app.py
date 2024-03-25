@@ -108,6 +108,7 @@ def get_audience_products():
 def get_audience_prices():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/prices", headers=headers).json()
+    return response
 
 
 @app.get("/audience_stocks")
