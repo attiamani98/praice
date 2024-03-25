@@ -73,14 +73,12 @@ def update_price():
 
     prices = []
     for batch_name in unique_batch_names:
-        batch_df = sales_data.loc[lambda df: df['batch_name'] == batch_name].reset_index(drop=True)
-        product = sales_data.loc[0, 'product']
+        product = sales_data.loc[lambda df: df['batch_name'] == batch_name]['product'].values[0]
         if np.random.rand() > epsilon:
-            pass
-            # # Exploit: select price with highest sales in history
-            # product_df = df.loc[lambda df: df['product'] == product]
-            # price = product_df['price'].agg('max')
-            # print(f'product {product}, batch {batch_name}: exploit. setting price to {price}')
+            # Exploit: select price with highest sales in history
+            product_df = df.loc[lambda df: df['product'] == product]
+            price = product_df['price'].agg('max')
+            print(f'product {product}, batch {batch_name}: exploit. setting price to {price}')
         else:
             # Explore: select random price
             price = np.random.uniform(low=price_ranges[product][0], high=price_ranges[product][1])
@@ -92,15 +90,6 @@ def update_price():
         pd.DataFrame(prices, columns=['product_name', 'batch_name', 'price'])
         .assign(start_date = pd.Timestamp.now())
         .sort_values(['product_name', 'batch_name', 'price'])
-        .reset_index(drop=True)
-    )
-
-    prices_df
-
-    prices_df = (
-        pd.DataFrame(prices, columns=["product_name", "batch_name", "price"])
-        .assign(start_date=pd.Timestamp.now())
-        .sort_values(["product_name", "batch_name", "price"])
         .reset_index(drop=True)
     )
 
