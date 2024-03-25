@@ -72,7 +72,7 @@ def update_price():
         f"epsilon set to {epsilon}, which means we explore {epsilon*100} % of the time"
     )
 
-    unique_batch_names = df.sort_values("product")["batch_name"].unique()
+    unique_batch_names = sales_data.loc[lambda df: df.sell_by > pd.Timestamp.now()]['batch_name'].unique()
 
     prices = []
     for batch_name in unique_batch_names:
