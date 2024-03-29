@@ -198,11 +198,8 @@ def insert_stocks(stocks):
     cursor = connection.cursor()
 
     execution_time = datetime.datetime.now()
-    logger.info(f"Stocks var: {stocks}")
 
     for category, category_data in stocks.items():
-        logger.info(f"Category var: {category}")
-        logger.info(f"Category_data var: {category_data}")
         for stock, stock_data in category_data.items():
             batch_id = stock
             amount = stock_data
@@ -235,6 +232,6 @@ def insert_stocks(stocks):
 def updates():
     get_audience_products()
     get_audience_stocks()
-    get_audience_products()
+    get_audience_prices()
     update_price()
     logger.info(f"Updates has ran successfully.")
