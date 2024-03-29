@@ -248,8 +248,6 @@ def loop_calls():
         get_audience_products()
         get_audience_stocks()
         update_price()
-        sleep(60)
-
         logger.info(f"Loop has ran successfully.")
         threading.Timer(60, loop_calls).start()
 
