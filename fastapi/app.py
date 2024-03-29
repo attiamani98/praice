@@ -242,6 +242,7 @@ def insert_stocks(stocks):
     connection.close()
 
 
+@app.get("/loop_calls", status_code=200)
 def loop_calls():
     while True:
 
