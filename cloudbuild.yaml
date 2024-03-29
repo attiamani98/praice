@@ -1,0 +1,14 @@
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest', '-f', '../fastapi/fastapi.Dockerfile', '../fastapi']
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest']
+# Deploy container image to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ['run', 'deploy', 'my-service', '--image', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest', '--region', 'europe-west4']
+images:
+- europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest
+
