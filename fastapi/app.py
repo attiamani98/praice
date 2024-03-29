@@ -250,6 +250,3 @@ def loop_calls():
         update_price()
         logger.info(f"Loop has ran successfully.")
         threading.Timer(60, loop_calls).start()
-
-
-loop_calls()
