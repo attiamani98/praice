@@ -206,8 +206,11 @@ def insert_stocks(stocks):
     cursor = connection.cursor()
 
     execution_time = datetime.datetime.now()
+    print(f"Stocks var: {stocks}")
 
     for category, category_data in stocks.items():
+        print(f"Category var: {category}")
+        print(f"Category_data var: {category_data}")
         for stock, stock_data in category_data.items():
             batch_id = stock
             amount = stock_data
