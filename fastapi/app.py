@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
 from model import update_price
+import uvicorn
 
 
 app = FastAPI()
@@ -19,6 +20,7 @@ api_key = os.environ.get("API_KEY")
 headers = {"X-API-KEY": api_key}
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
@@ -206,11 +208,11 @@ def insert_stocks(stocks):
     cursor = connection.cursor()
 
     execution_time = datetime.datetime.now()
-    print(f"Stocks var: {stocks}")
+    logger.info(f"Stocks var: {stocks}")
 
     for category, category_data in stocks.items():
-        print(f"Category var: {category}")
-        print(f"Category_data var: {category_data}")
+        logger.info(f"Category var: {category}")
+        logger.info(f"Category_data var: {category_data}")
         for stock, stock_data in category_data.items():
             batch_id = stock
             amount = stock_data
@@ -240,7 +242,6 @@ def insert_stocks(stocks):
 
 
 def loop_calls():
-    logging.basicConfig(level=logging.INFO)
     while True:
         # TODO: Add the get_audience_prices to this loop
         # TODO: Add the explore exploit function to this loop
@@ -251,5 +252,7 @@ def loop_calls():
         logger.info(f"Loop has ran successfully.")
 
 
-timer = threading.Timer(60.0, loop_calls)
-timer.start()
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    timer = threading.Timer(0, loop_calls)  # Start immediately
+    timer.start()
