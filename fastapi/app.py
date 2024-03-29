@@ -242,12 +242,9 @@ def insert_stocks(stocks):
     connection.close()
 
 
-@app.get("/loop_calls", status_code=200)
-def loop_calls():
-    while True:
-
-        get_audience_products()
-        get_audience_stocks()
-        update_price()
-        logger.info(f"Loop has ran successfully.")
-        threading.Timer(60, loop_calls).start()
+@app.get("/updates", status_code=200)
+def updates():
+    get_audience_products()
+    get_audience_stocks()
+    update_price()
+    logger.info(f"Updates has ran successfully.")
