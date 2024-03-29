@@ -111,6 +111,7 @@ def get_audience_products():
 def get_audience_prices():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/prices", headers=headers).json()
+    insert_audience_prices(response)
     return response
 
 
@@ -123,7 +124,7 @@ def get_audience_stocks():
 
 
 @app.get("/audience_leaderboards")
-def get_audience_prices():
+def get_audience_leaderboards():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/leaderboards", headers=headers).json()
     return response
@@ -166,35 +167,23 @@ def insert_batches(batches):
     connection.close()
 
 
-# TODO: Wait for the prices to go live, so that we are able to know what the data model should look like
-def insert_prices(prices):
+def insert_audience_prices(prices):
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
     cursor = connection.cursor()
-    dict_key = "products"
+    table_name = "competitors"
 
     execution_time = datetime.datetime.now()
 
-    for category, category_data in prices.items():
-        for product, product_data in category_data[dict_key].items():
-            batch_name = product
-            batch_id = product_data["id"]
-            sell_by = product_data["sell_by"]
-
-            # Check if the product already exists in the database
-            select_query = sql.SQL(
-                "SELECT COUNT(*) FROM batchs WHERE batch_name = %s AND product = %s"
-            )
-            cursor.execute(select_query, (batch_name, category))
-            count = cursor.fetchone()[0]
-
-            # If the product doesn't exist, insert it into the database
-            if count == 0:
+    for product, batches in prices.items():
+        for batch, batch_data in prices[product].items():
+            for competitor in batch_data:
+                price = batch_data[competitor]
                 insert_query = sql.SQL(
-                    "INSERT INTO batchs (batch_name, product, batch_id, sell_by, execution_time) VALUES (%s, %s, %s, %s, %s)"
+                    f"INSERT INTO {table_name} (batch_name, competitor, price, execution_time) VALUES (%s, %s, %s, %s)"
                 )
                 cursor.execute(
                     insert_query,
-                    (batch_name, category, batch_id, sell_by, execution_time),
+                    (batch, competitor, price, execution_time),
                 )
 
     # Commit the changes
@@ -246,5 +235,6 @@ def insert_stocks(stocks):
 def updates():
     get_audience_products()
     get_audience_stocks()
+    get_audience_products()
     update_price()
     logger.info(f"Updates has ran successfully.")
