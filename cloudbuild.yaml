@@ -1,7 +1,7 @@
 steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest', '-f', '../fastapi/fastapi.Dockerfile', '../fastapi']
+  args: ['build', '-t', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest', '-f', './fastapi/fastapi.Dockerfile', './fastapi']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest']
