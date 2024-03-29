@@ -45,7 +45,7 @@ def preprocess_data(sales_data, price_data):
         .sort_values(['product', 'batch_id', 'timestamp'])
     )
 
-def greedy_epsilon(sales_data, preprocessed_df, epsilon=0.75):
+def greedy_epsilon(sales_data, preprocessed_df, epsilon=0.35):
 
     price_ranges = {
         'rice': (1, 6),
