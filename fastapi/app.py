@@ -234,4 +234,4 @@ def updates():
     get_audience_stocks()
     get_audience_prices()
     update_price()
-    logger.info(f"Updates has ran successfully.")
+    logger.info(f"Update has ran successfully.")
