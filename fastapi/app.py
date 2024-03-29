@@ -1,3 +1,4 @@
+from asyncio import sleep
 import datetime, os, google.auth.transport.requests, google.oauth2.id_token, requests, json, psycopg2
 import time
 import pandas as pd
@@ -243,16 +244,14 @@ def insert_stocks(stocks):
 
 def loop_calls():
     while True:
-        # TODO: Add the get_audience_prices to this loop
-        # TODO: Add the explore exploit function to this loop
+
         get_audience_products()
         get_audience_stocks()
         update_price()
+        sleep(60)
 
         logger.info(f"Loop has ran successfully.")
+        threading.Timer(60, loop_calls).start()
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-    timer = threading.Timer(0, loop_calls)  # Start immediately
-    timer.start()
+loop_calls()
