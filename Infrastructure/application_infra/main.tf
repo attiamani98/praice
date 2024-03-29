@@ -40,7 +40,7 @@ resource "google_cloud_run_service" "default" {
         }
         env {
           name = "API_KEY"
-          value = "Oj?odt%vf[!%3{3&gZy_ziym"
+          value = "=Oj?odt%vf[!%3{3&gZy_ziym"
         }
         env {
           name = "API_URL"
