@@ -127,7 +127,28 @@ def get_audience_stocks():
 def get_audience_leaderboards():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/leaderboards", headers=headers).json()
+    insert_leaderboards(response)
     return response
+
+def insert_leaderboards(leaderboards):
+    connection = psycopg2.connect(os.environ["DATABASE_URL"])
+    cursor = connection.cursor()
+
+    execution_time = datetime.datetime.now()
+
+    insert_query = sql.SQL(
+        "INSERT INTO leaderboards (GenDP, DynamicDealmakers, random_competitor, RedAlert,ThePRIceIsRight, execution_time) VALUES (%s, %s, %s, %s,%s, %s)"
+    )
+    cursor.execute(insert_query, (leaderboards['GenDP'],leaderboards['DynamicDealmakers'],
+                                  leaderboards['random_competitor'], leaderboards['RedAlert'],leaderboards['ThePRIceIsRight'],execution_time))
+
+
+    # Commit the changes
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
 
 
 def insert_batches(batches):
