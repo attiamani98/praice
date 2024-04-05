@@ -7,16 +7,13 @@ import threading
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
-from model import update_price
+from model_utils import update_price
 import uvicorn
 
 
 app = FastAPI()
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
-    "./pricing-prd-11719402-69eaf79e6222.json"
-    
-)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GCP_SECRET")
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
 headers = {"X-API-KEY": api_key}
