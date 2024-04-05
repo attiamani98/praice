@@ -7,7 +7,7 @@ import threading
 from fastapi import FastAPI, HTTPException
 from dataclasses import dataclass
 from psycopg2 import sql
-from model import update_price
+from model_utils import update_price
 import uvicorn
 
 
