@@ -12,8 +12,20 @@ import uvicorn
 
 
 app = FastAPI()
+from google.cloud import secretmanager_v1beta1 as secretmanager
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GCP_SECRET")
+# Set up Secret Manager client
+client = secretmanager.SecretManagerServiceClient()
+
+# Fetch the secret
+name = "projects/thepriceisright-1045090/secrets/GCP_SECRET/versions/latest"
+response = client.access_secret_version(request={"name": name})
+gcp_secret = response.payload.data.decode("UTF-8")
+
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+    gcp_secret
+)
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
 headers = {"X-API-KEY": api_key}
