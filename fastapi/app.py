@@ -9,16 +9,16 @@ from dataclasses import dataclass
 from psycopg2 import sql
 from model_utils import update_price
 import uvicorn
+from google.cloud import secretmanager_v1beta1 as secretmanager
 
 
 app = FastAPI()
-from google.cloud import secretmanager_v1beta1 as secretmanager
 
 # Set up Secret Manager client
 client = secretmanager.SecretManagerServiceClient()
 
 # Fetch the secret
-name = "projects/thepriceisright-1045090/secrets/GCP_SECRET/versions/latest"
+name = "projects/619493116664/secrets/GCP_SECRET/versions/latest"
 response = client.access_secret_version(request={"name": name})
 gcp_secret = response.payload.data.decode("UTF-8")
 
