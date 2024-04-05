@@ -14,8 +14,7 @@ import uvicorn
 app = FastAPI()
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
-    "./pricing-prd-11719402-69eaf79e6222.json"
-    
+    os.environ['GCP_SECRET']
 )
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
