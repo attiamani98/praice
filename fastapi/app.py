@@ -15,6 +15,7 @@ app = FastAPI()
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     os.environ['GCP_SECRET']
+    
 )
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
