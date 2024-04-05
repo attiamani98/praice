@@ -12,3 +12,5 @@ steps:
 images:
 - europe-west4-docker.pkg.dev/thepriceisright-1045090/main-repo/praice_model:latest
 
+options:
+  logging: CLOUD_LOGGING_ONLY
