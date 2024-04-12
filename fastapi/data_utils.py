@@ -5,11 +5,11 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 
-def load_data():
+def load_data(from_date):
     database_url = os.environ["DATABASE_URL"]
     engine = create_engine(database_url)
 
-    sales_data_query = """
+    sales_data_query = f"""
         SELECT
             st.batch_id,
             b.batch_name,
@@ -21,6 +21,7 @@ def load_data():
             stock st
         JOIN
             batchs b ON CAST(b.batch_id AS TEXT) = CAST(st.batch_id AS TEXT)
+        WHERE st.execution_time > '{from_date}'
     """
     sales_data = pd.read_sql_query(sales_data_query, engine)
 

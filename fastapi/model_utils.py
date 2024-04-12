@@ -52,13 +52,9 @@ def undercut_min_price(df):
         .assign(stock_per = lambda df: df.stock / df.start_stock)
         .loc[lambda df: df.timestamp == df.timestamp.max()]
         .loc[lambda df: df.sell_by > pd.Timestamp.now()]
-        .set_index(['product', 'batch_name', 'stock_per'])
-        [['dynamicdealmakers', 'gendp', 'redalert', 'random_competitor']]
-        .min(axis=1)
-        .rename('price')
+        .assign(price = lambda df: df.redalert - (df.redalert * 0.01))
         .reset_index()
-        .assign(price = lambda df: np.where(df.stock_per < 0.15, df.price * 20, df.price - 0.03))
-        .rename(columns={'product': 'product_name'})
+        [['product_name', 'batch_name', 'price']]
         .sort_values(['product_name', 'batch_name', 'price'])
         .assign(start_date = pd.Timestamp.now())
         .reset_index(drop=True)
