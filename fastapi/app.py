@@ -53,12 +53,12 @@ def get_requests_headers(api_key):
 
 
 @app.get("/")
-def index():
+async def index():
     return "Hello to the PrAIce is Right Market"
 
 
 @app.get("/prices", status_code=200)
-def get_prices():
+async def get_prices():
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
     cursor = connection.cursor()
 
@@ -88,7 +88,7 @@ def get_prices():
 
 
 @app.get("/prices/{batch_name}", status_code=200)
-def get_product_price(batch_name: str):
+async def get_product_price(batch_name: str):
     try:
         return {
             f"the price of {Batch[batch_name].product_name}: {Batch[batch_name].price}"
@@ -101,7 +101,7 @@ def get_product_price(batch_name: str):
 
 # All API calls to get data from the dynamic price simulator go here
 @app.get("/audience_products")
-def get_audience_products():
+async def get_audience_products():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/products", headers=headers).json()
     insert_batches(response)
@@ -109,7 +109,7 @@ def get_audience_products():
 
 
 @app.get("/audience_prices")
-def get_audience_prices():
+async def get_audience_prices():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/prices", headers=headers).json()
     insert_audience_prices(response)
@@ -117,7 +117,7 @@ def get_audience_prices():
 
 
 @app.get("/audience_stocks")
-def get_audience_stocks():
+async def get_audience_stocks():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/stocks", headers=headers).json()
     insert_stocks(response)
@@ -125,7 +125,7 @@ def get_audience_stocks():
 
 
 @app.get("/audience_leaderboards")
-def get_audience_leaderboards():
+async def get_audience_leaderboards():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/leaderboards", headers=headers).json()
     insert_leaderboards(response)
@@ -133,7 +133,7 @@ def get_audience_leaderboards():
 
 
 @app.post("/competitors_performance")
-def post_competitors_performance():
+async def post_competitors_performance():
     table_name = "leaderboards"
 
     database_url = os.environ["DATABASE_URL"]
@@ -298,7 +298,7 @@ def insert_stocks(stocks):
 
 
 @app.get("/updates", status_code=200)
-def updates():
+async def updates():
     get_audience_products()
     get_audience_stocks()
     update_price()
