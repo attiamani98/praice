@@ -36,6 +36,38 @@ def load_data():
 
     return sales_data, price_data, competitor_data
 
+def load_data_current_batches():
+    database_url = os.environ["DATABASE_URL"]
+    engine = create_engine(database_url)
+
+    sales_data_query = """
+        SELECT
+            st.batch_id,
+            b.batch_name,
+            st.execution_time AS timestamp,
+            b.product AS product,
+            b.sell_by AS sell_by,
+            st.amount AS stock
+        FROM
+            stock st
+        JOIN
+            batchs b ON CAST(b.batch_id AS TEXT) = CAST(st.batch_id AS TEXT)
+        WHERE b.batch_name IN (SELECT DISTINCT batch_name FROM stock WHERE sell_by > NOW() AND execution_time = (SELECT MAX(execution_time) FROM stock))
+    """
+    sales_data = pd.read_sql_query(sales_data_query, engine)
+
+    price_data_query = """
+        SELECT product_name, batch_name, price, start_date FROM prices
+    """
+    price_data = pd.read_sql_query(price_data_query, engine)
+
+    competitor_data_query = """
+        SELECT * FROM competitors
+    """
+    competitor_data = pd.read_sql_query(competitor_data_query, engine)
+
+    return sales_data, price_data, competitor_data
+
 def preprocess_data(sales_data, price_data, competitor_data):
 
     sales_and_price_merged = pd.merge_asof(
