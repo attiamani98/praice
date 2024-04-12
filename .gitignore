@@ -8,3 +8,4 @@ __pycache__/*
 .terraform.lock.hcl
 ml_notebooks
 *.pyc
+.DS_storess

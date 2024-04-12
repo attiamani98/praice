@@ -9,11 +9,14 @@ from dataclasses import dataclass
 from psycopg2 import sql
 from model_utils import update_price
 import uvicorn
+from sqlalchemy import create_engine, text
 
 
 app = FastAPI()
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GCP_SECRET")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+    "./pricing-prd-11719402-69eaf79e6222.json"
+)
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
 headers = {"X-API-KEY": api_key}
@@ -128,6 +131,46 @@ def get_audience_leaderboards():
     insert_leaderboards(response)
     return response
 
+
+@app.post("/competitors_performance")
+def post_competitors_performance():
+    table_name = "leaderboards"
+
+    database_url = os.environ["DATABASE_URL"]
+    engine = create_engine(database_url)
+    connection = psycopg2.connect(database_url)
+    cursor = connection.cursor()
+
+    execution_time = datetime.datetime.now()
+
+    get_latest_leaderboards_query = (
+        f"SELECT * FROM {table_name} ORDER BY execution_time DESC LIMIT 2"
+    )
+    latest_leaderboards = pd.read_sql_query(get_latest_leaderboards_query, engine)
+
+    new_leaderboard = latest_leaderboards.iloc[0]
+    old_leaderboard = latest_leaderboards.iloc[1]
+
+    gendp_difference = new_leaderboard["gendp"] - old_leaderboard["gendp"]
+    dynamicdealmakers_difference = (
+        new_leaderboard["dynamicdealmakers"] - old_leaderboard["dynamicdealmakers"]
+    )
+    random_competitor_difference = (
+        new_leaderboard["random_competitor"] - old_leaderboard["random_competitor"]
+    )
+    redalert_difference = new_leaderboard["redalert"] - old_leaderboard["redalert"]
+    insert_query = sql.SQL(
+        f"INSERT INTO competitors_performance (gendp, dynamicdealmakers, random_competitor, redalert, execution_time) VALUES ({gendp_difference}, {dynamicdealmakers_difference}, {random_competitor_difference}, {redalert_difference}, '{execution_time}')"
+    )
+    cursor.execute(insert_query)
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return
+
+
 def insert_leaderboards(leaderboards):
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
     cursor = connection.cursor()
@@ -137,16 +180,23 @@ def insert_leaderboards(leaderboards):
     insert_query = sql.SQL(
         "INSERT INTO leaderboards (GenDP, DynamicDealmakers, random_competitor, RedAlert,ThePRIceIsRight, execution_time) VALUES (%s, %s, %s, %s,%s, %s)"
     )
-    cursor.execute(insert_query, (leaderboards['GenDP'],leaderboards['DynamicDealmakers'],
-                                  leaderboards['random_competitor'], leaderboards['RedAlert'],leaderboards['ThePRIceIsRight'],execution_time))
-
+    cursor.execute(
+        insert_query,
+        (
+            leaderboards["GenDP"],
+            leaderboards["DynamicDealmakers"],
+            leaderboards["random_competitor"],
+            leaderboards["RedAlert"],
+            leaderboards["ThePRIceIsRight"],
+            execution_time,
+        ),
+    )
 
     # Commit the changes
     connection.commit()
 
     cursor.close()
     connection.close()
-
 
 
 def insert_batches(batches):
