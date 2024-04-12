@@ -9,22 +9,13 @@ from dataclasses import dataclass
 from psycopg2 import sql
 from model_utils import update_price
 import uvicorn
-from google.cloud import secretmanager_v1beta1 as secretmanager
+from sqlalchemy import create_engine, text
 
 
 app = FastAPI()
 
-# Set up Secret Manager client
-client = secretmanager.SecretManagerServiceClient()
-
-# Fetch the secret
-name = "projects/619493116664/secrets/GCP_SECRET/versions/latest"
-response = client.access_secret_version(request={"name": name})
-gcp_secret = response.payload.data.decode("UTF-8")
-
-
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
-    gcp_secret
+    "./pricing-prd-11719402-69eaf79e6222.json"
 )
 audience = os.getenv("API_URL")
 api_key = os.environ.get("API_KEY")
@@ -62,12 +53,12 @@ def get_requests_headers(api_key):
 
 
 @app.get("/")
-def index():
+async def index():
     return "Hello to the PrAIce is Right Market"
 
 
 @app.get("/prices", status_code=200)
-def get_prices():
+async def get_prices():
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
     cursor = connection.cursor()
 
@@ -97,7 +88,7 @@ def get_prices():
 
 
 @app.get("/prices/{batch_name}", status_code=200)
-def get_product_price(batch_name: str):
+async def get_product_price(batch_name: str):
     try:
         return {
             f"the price of {Batch[batch_name].product_name}: {Batch[batch_name].price}"
@@ -110,7 +101,7 @@ def get_product_price(batch_name: str):
 
 # All API calls to get data from the dynamic price simulator go here
 @app.get("/audience_products")
-def get_audience_products():
+async def get_audience_products():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/products", headers=headers).json()
     insert_batches(response)
@@ -118,7 +109,7 @@ def get_audience_products():
 
 
 @app.get("/audience_prices")
-def get_audience_prices():
+async def get_audience_prices():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/prices", headers=headers).json()
     insert_audience_prices(response)
@@ -126,7 +117,7 @@ def get_audience_prices():
 
 
 @app.get("/audience_stocks")
-def get_audience_stocks():
+async def get_audience_stocks():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/stocks", headers=headers).json()
     insert_stocks(response)
@@ -134,11 +125,51 @@ def get_audience_stocks():
 
 
 @app.get("/audience_leaderboards")
-def get_audience_leaderboards():
+async def get_audience_leaderboards():
     headers = get_requests_headers(api_key)
     response = requests.get(f"{audience}/leaderboards", headers=headers).json()
     insert_leaderboards(response)
     return response
+
+
+@app.post("/competitors_performance")
+async def post_competitors_performance():
+    table_name = "leaderboards"
+
+    database_url = os.environ["DATABASE_URL"]
+    engine = create_engine(database_url)
+    connection = psycopg2.connect(database_url)
+    cursor = connection.cursor()
+
+    execution_time = datetime.datetime.now()
+
+    get_latest_leaderboards_query = (
+        f"SELECT * FROM {table_name} ORDER BY execution_time DESC LIMIT 2"
+    )
+    latest_leaderboards = pd.read_sql_query(get_latest_leaderboards_query, engine)
+
+    new_leaderboard = latest_leaderboards.iloc[0]
+    old_leaderboard = latest_leaderboards.iloc[1]
+
+    gendp_difference = new_leaderboard["gendp"] - old_leaderboard["gendp"]
+    dynamicdealmakers_difference = (
+        new_leaderboard["dynamicdealmakers"] - old_leaderboard["dynamicdealmakers"]
+    )
+    random_competitor_difference = (
+        new_leaderboard["random_competitor"] - old_leaderboard["random_competitor"]
+    )
+    redalert_difference = new_leaderboard["redalert"] - old_leaderboard["redalert"]
+    insert_query = sql.SQL(
+        f"INSERT INTO competitors_performance (gendp, dynamicdealmakers, random_competitor, redalert, execution_time) VALUES ({gendp_difference}, {dynamicdealmakers_difference}, {random_competitor_difference}, {redalert_difference}, '{execution_time}')"
+    )
+    cursor.execute(insert_query)
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return
+
 
 def insert_leaderboards(leaderboards):
     connection = psycopg2.connect(os.environ["DATABASE_URL"])
@@ -149,16 +180,23 @@ def insert_leaderboards(leaderboards):
     insert_query = sql.SQL(
         "INSERT INTO leaderboards (GenDP, DynamicDealmakers, random_competitor, RedAlert,ThePRIceIsRight, execution_time) VALUES (%s, %s, %s, %s,%s, %s)"
     )
-    cursor.execute(insert_query, (leaderboards['GenDP'],leaderboards['DynamicDealmakers'],
-                                  leaderboards['random_competitor'], leaderboards['RedAlert'],leaderboards['ThePRIceIsRight'],execution_time))
-
+    cursor.execute(
+        insert_query,
+        (
+            leaderboards["GenDP"],
+            leaderboards["DynamicDealmakers"],
+            leaderboards["random_competitor"],
+            leaderboards["RedAlert"],
+            leaderboards["ThePRIceIsRight"],
+            execution_time,
+        ),
+    )
 
     # Commit the changes
     connection.commit()
 
     cursor.close()
     connection.close()
-
 
 
 def insert_batches(batches):
@@ -260,7 +298,7 @@ def insert_stocks(stocks):
 
 
 @app.get("/updates", status_code=200)
-def updates():
+async def updates():
     get_audience_products()
     get_audience_stocks()
     update_price()
