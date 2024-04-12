@@ -46,13 +46,15 @@ def greedy_epsilon(df, epsilon=0.35):
 
 def undercut_min_price(df):
 
+    comp_df = df.loc[lambda df: df.timestamp == df.timestamp.max()][['dynamicdealmakers', 'gendp', 'redalert', 'random_competitor']]
+    highest_seller = comp_df.mean().index[comp_df.mean().argmax()]
     return (
         df
         .assign(start_stock = df.groupby('batch_name')['stock'].transform("max"))
         .assign(stock_per = lambda df: df.stock / df.start_stock)
         .loc[lambda df: df.timestamp == df.timestamp.max()]
         .loc[lambda df: df.sell_by > pd.Timestamp.now()]
-        .assign(price = lambda df: df.redalert - (df.redalert * 0.01))
+        .assign(price = lambda df: df[highest_seller] - (df[highest_seller] * 0.01))
         .reset_index()
         [['product_name', 'batch_name', 'price']]
         .sort_values(['product_name', 'batch_name', 'price'])
