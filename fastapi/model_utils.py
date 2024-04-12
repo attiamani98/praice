@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from data_utils import load_data, preprocess_data, update_prices_db
+from data_utils import load_data, load_data_current_batches, preprocess_data, update_prices_db
 
 def greedy_epsilon(df, epsilon=0.35):
 
@@ -48,14 +48,16 @@ def undercut_min_price(df):
 
     return (
         df
+        .assign(start_stock = df.groupby('batch_name')['stock'].transform("max"))
+        .assign(stock_per = lambda df: df.stock / df.start_stock)
         .loc[lambda df: df.timestamp == df.timestamp.max()]
         .loc[lambda df: df.sell_by > pd.Timestamp.now()]
-        .set_index(['product', 'batch_name'])
+        .set_index(['product', 'batch_name', 'stock_per'])
         [['dynamicdealmakers', 'gendp', 'redalert', 'random_competitor']]
         .min(axis=1)
         .rename('price')
         .reset_index()
-        .assign(price = lambda df: df.price - 0.03)
+        .assign(price = lambda df: np.where(df.stock_per < 0.15, df.price * 20, df.price - 0.03))
         .rename(columns={'product': 'product_name'})
         .sort_values(['product_name', 'batch_name', 'price'])
         .assign(start_date = pd.Timestamp.now())
@@ -65,7 +67,7 @@ def undercut_min_price(df):
 
 
 def update_price(update_db=True):
-    sales_data, price_data, competitor_data = load_data()
+    sales_data, price_data, competitor_data = load_data_current_batches()
     df = preprocess_data(sales_data, price_data, competitor_data)
     prices_df = undercut_min_price(df)
     if update_db:
