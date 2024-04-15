@@ -56,8 +56,9 @@ def undercut_min_price(df):
         .loc[lambda df: df.sell_by > pd.Timestamp.now()]
         .assign(price = lambda df: df[highest_seller] - (df[highest_seller] * 0.01))
         .reset_index()
-        [['product_name', 'batch_name', 'price']]
-        .sort_values(['product_name', 'batch_name', 'price'])
+        [['product', 'batch_name', 'price']]
+        .sort_values(['product', 'batch_name', 'price'])
+        .rename(columns={'product': 'product_name'})
         .assign(start_date = pd.Timestamp.now())
         .reset_index(drop=True)
         .fillna(5)
