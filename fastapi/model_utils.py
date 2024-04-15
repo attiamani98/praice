@@ -53,7 +53,7 @@ def undercut_min_price(df):
         .assign(start_stock = df.groupby('batch_name')['stock'].transform("max"))
         .assign(stock_per = lambda df: df.stock / df.start_stock)
         .loc[lambda df: df.timestamp == df.timestamp.max()]
-        .loc[lambda df: df.sell_by > pd.Timestamp.now()]
+        # .loc[lambda df: df.sell_by > pd.Timestamp.now()]
         .assign(price = lambda df: df[highest_seller] - (df[highest_seller] * 0.01))
         .reset_index()
         [['product', 'batch_name', 'price']]
