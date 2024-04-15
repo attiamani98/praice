@@ -292,14 +292,13 @@ def insert_stocks(stocks):
 
     # Commit the changes
     connection.commit()
-
     cursor.close()
     connection.close()
 
 
 @app.get("/updates", status_code=200)
 async def updates():
-    get_audience_products()
-    get_audience_stocks()
+    await get_audience_products()
+    await get_audience_stocks()
     update_price()
     logger.info(f"Update has ran successfully.")
